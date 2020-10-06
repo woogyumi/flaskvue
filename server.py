@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import pandas as pd
 # set the project root directory as the static folder, you can set others.
 app = Flask(__name__, static_url_path='')
 data = {
@@ -11,15 +12,23 @@ data = {
     ]
 }
 
+df = pd.read_csv('sample_data/bike_rental_status.csv')
+data2 = {
+    "fields": df.columns.tolist(),
+    "data": df.to_dict('records')
+}
+
 # CORS(app)
 
 @app.route('/')
 def root():
     return app.send_static_file('index.html')
 
+
 @app.route('/rest/get')
 def rest_get():
     return jsonify(data)
+  
 
 @app.route('/rest/set', methods = ['POST'])
 def rest_set():
@@ -31,5 +40,22 @@ def rest_set():
             break
     return jsonify(req)
 
+
+@app.route('/rest/table', methods=['GET', 'POST'])
+def table():
+    if request.method == 'POST':
+        req = request.get_json()
+        print(req)
+        #dataframe으로 변환후 머지할 것
+        #for idx in range(len(data2["data"])):
+        #    if(data2["data"][idx]['host'] == req["key"]):
+        #        data2["data"][idx] = req["row"]
+        #    break
+        return jsonify(req)
+    else:
+        return jsonify(data2)
+
+
 if __name__ == "__main__":
-    app.run()
+    app.debug = True
+    app.run(host="0.0.0.0", port=8080)
